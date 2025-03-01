@@ -9,8 +9,7 @@
         body { text-align: center; font-family: Arial, sans-serif; }
         video {
             width: 100%;
-            height: auto;
-            max-width: 100%;
+            max-width: 300px; /* Ajustamos el tamaño del video */
         }
         canvas { display: none; }
     </style>
@@ -33,19 +32,25 @@
 
         async function iniciarCamara() {
             try {
+                // Aseguramos que la cámara esté habilitada correctamente
                 const stream = await navigator.mediaDevices.getUserMedia({
                     video: { facingMode: "environment" }
                 });
                 video.srcObject = stream;
+                video.play();
+                console.log("Cámara iniciada correctamente");  // Depuración
                 escanearQR();
             } catch (error) {
                 mensaje.textContent = "Error al acceder a la cámara.";
+                console.error("Error al acceder a la cámara:", error);  // Depuración
             }
         }
 
         function escanearQR() {
+            console.log("Iniciando el escaneo de QR...");  // Depuración
             const intervalo = setInterval(() => {
                 if (video.readyState === video.HAVE_ENOUGH_DATA && !escaneando) {
+                    console.log("Cargando frame del video...");  // Depuración
                     canvas.width = video.videoWidth;
                     canvas.height = video.videoHeight;
                     context.drawImage(video, 0, 0, canvas.width, canvas.height);
@@ -56,6 +61,7 @@
                     if (codigoQR) {
                         clearInterval(intervalo);
                         escaneando = true;
+                        console.log("Código QR detectado:", codigoQR);  // Depuración
                         procesarQR(codigoQR.data);
                     }
                 }
@@ -65,20 +71,26 @@
         function procesarQR(codigo) {
             const url = `https://monkeytyping.github.io/card-game-sentences/audio/${codigo}.mp3`;
             mensaje.textContent = `Reproduciendo...`;
+            console.log(`Reproduciendo audio desde: ${url}`);  // Depuración
             audio.src = url;
             audio.play().catch(() => {
                 mensaje.textContent = "Error al reproducir audio.";
+                console.error("Error al reproducir audio.");  // Depuración
                 escaneando = false;
             });
         }
 
+        // Cuando el audio termina, vuelve a activar el escaneo de QR
         audio.onended = () => {
             mensaje.textContent = "Escanea un código QR.";
             escaneando = false;
             escanearQR();
         };
 
-        iniciarCamara();
+        // Iniciar la cámara al cargar la página
+        window.onload = () => {
+            iniciarCamara();
+        };
     </script>
 </body>
 </html>
