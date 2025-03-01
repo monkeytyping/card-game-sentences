@@ -7,7 +7,11 @@
     <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js"></script>
     <style>
         body { text-align: center; font-family: Arial, sans-serif; }
-        video { width: 100%; max-width: 400px; }
+        video {
+            width: 100%;
+            height: auto;
+            max-width: 100%;
+        }
         canvas { display: none; }
     </style>
 </head>
@@ -27,14 +31,49 @@
 
         let escaneando = false; // Para evitar múltiples escaneos simultáneos
 
+        // Verifica si el navegador es compatible con getUserMedia
+        if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+            mensaje.textContent = "Tu navegador no es compatible con la cámara. Actualiza a una versión más reciente de Chrome o Firefox.";
+        } else {
+            iniciarCamara();
+        }
+
         async function iniciarCamara() {
             try {
-                const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } });
+                // Solicita el acceso a la cámara trasera
+                const stream = await navigator.mediaDevices.getUserMedia({
+                    video: {
+                        facingMode: { exact: "environment" }, // Solicita la cámara trasera
+                        width: { ideal: 1280 }, // Ancho ideal
+                        height: { ideal: 720 } // Alto ideal
+                    }
+                });
+
+                // Asigna el flujo de la cámara al elemento video
                 video.srcObject = stream;
-                escaneando = false; // Reiniciar estado del escaneo
-                escanearQR();
+
+                // Espera que los metadatos del video estén cargados antes de reproducir
+                video.onloadedmetadata = () => {
+                    video.play();
+                    mensaje.textContent = "Escanea un código QR"; // Mensaje después de que la cámara está lista
+                    escaneando = false; // Reiniciar estado de escaneo
+                    escanearQR();
+                };
+
+                // Manejo de errores del flujo de video
+                video.onerror = (e) => {
+                    console.error("Error en el flujo de video", e);
+                    mensaje.textContent = "Error al acceder al flujo de video.";
+                };
             } catch (error) {
-                mensaje.textContent = "Error al acceder a la cámara.";
+                console.error("Error al acceder a la cámara:", error);
+                if (error.name === "NotAllowedError") {
+                    mensaje.textContent = "Permiso de cámara denegado.";
+                } else if (error.name === "NotFoundError") {
+                    mensaje.textContent = "No se pudo encontrar una cámara trasera.";
+                } else {
+                    mensaje.textContent = "Error al acceder a la cámara.";
+                }
             }
         }
 
@@ -73,8 +112,6 @@
             escaneando = false; // Permite escanear otro QR
             escanearQR(); // Vuelve a iniciar el escaneo
         };
-
-        iniciarCamara();
     </script>
 </body>
 </html>
