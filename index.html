@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Frases de películas</title>
+    <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js"></script>
+    <style>
+        body { text-align: center; font-family: Arial, sans-serif; }
+        video { width: 100%; max-width: 400px; }
+        canvas { display: none; }
+    </style>
+</head>
+<body>
+    <h1>Frases de películas</h1>
+    <video id="video" autoplay></video>
+    <canvas id="canvas"></canvas>
+    <p id="mensaje">Escanea un código QR.</p>
+    <audio id="audio" style="display: none;"></audio>
+
+    <script>
+        const video = document.getElementById("video");
+        const canvas = document.getElementById("canvas");
+        const context = canvas.getContext("2d");
+        const mensaje = document.getElementById("mensaje");
+        const audio = document.getElementById("audio");
+
+        let escaneando = false; // Para evitar múltiples escaneos simultáneos
+
+        async function iniciarCamara() {
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } });
+                video.srcObject = stream;
+                escaneando = false; // Reiniciar estado del escaneo
+                escanearQR();
+            } catch (error) {
+                mensaje.textContent = "Error al acceder a la cámara.";
+            }
+        }
+
+        function escanearQR() {
+            const intervalo = setInterval(() => {
+                if (video.readyState === video.HAVE_ENOUGH_DATA && !escaneando) {
+                    canvas.width = video.videoWidth;
+                    canvas.height = video.videoHeight;
+                    context.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+                    const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
+                    const codigoQR = jsQR(imageData.data, imageData.width, imageData.height);
+
+                    if (codigoQR) {
+                        clearInterval(intervalo);
+                        escaneando = true; // Evita múltiples escaneos simultáneos
+                        procesarQR(codigoQR.data);
+                    }
+                }
+            }, 500);
+        }
+
+        function procesarQR(codigo) {
+            const url = `audio/${codigo}.mp3`;
+            mensaje.textContent = `Reproduciendo: ${codigo}.mp3`;
+            audio.src = url;
+            audio.play().catch(() => {
+                mensaje.textContent = "Error al reproducir audio.";
+                escaneando = false; // Si hay error, reactivar escaneo
+            });
+        }
+
+        // Cuando el audio termina, vuelve a activar la cámara para escanear otro QR
+        audio.onended = () => {
+            mensaje.textContent = "Escanea un código QR.";
+            escaneando = false; // Permite escanear otro QR
+            escanearQR(); // Vuelve a iniciar el escaneo
+        };
+
+        iniciarCamara();
+    </script>
+</body>
+</html>
