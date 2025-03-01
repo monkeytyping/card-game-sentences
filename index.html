@@ -58,8 +58,8 @@
         }
 
         function procesarQR(codigo) {
-            const url = `audio/${codigo}.mp3`;
-            mensaje.textContent = `Reproduciendo: ${codigo}.mp3`;
+            const url = `https://monkeytyping.github.io/card-game-sentences/audio/${codigo}.mp3`;
+            mensaje.textContent = `Reproduciendo...`;
             audio.src = url;
             audio.play().catch(() => {
                 mensaje.textContent = "Error al reproducir audio.";
