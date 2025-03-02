@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Frases de Películas</title>
+    <title>Escáner QR con Reproducción de Audio</title>
     <script src="https://unpkg.com/html5-qrcode" defer></script>
     <style>
         #reader, #image-placeholder {
@@ -45,8 +45,8 @@
             reader.style.display = "block";
             html5QrCode = new Html5Qrcode("reader");
             html5QrCode.start(
-                { facingMode: "environment" },
-                { fps: 10, qrbox: { width: 250, height: 250 } },
+                { facingMode: "environment" }, // Usar la cámara trasera del dispositivo
+                { fps: 10, qrbox: 300 }, // Asegurando que el área del escaneo sea cuadrada (300x300)
                 qrCodeMessage => {
                     html5QrCode.stop();
                     reader.style.display = "none";
