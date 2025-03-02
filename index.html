@@ -23,6 +23,13 @@
             text-align: center;
             margin-top: 50px;
         }
+        #loading-message {
+            text-align: center;
+            margin-top: 20px;
+            font-size: 18px;
+            color: #333;
+            display: none;
+        }
     </style>
 </head>
 <body>
@@ -30,6 +37,7 @@
     <button id="scan-button">Escanear QR</button>
     <div id="reader"></div>
     <img id="image-placeholder" src="imagen.png" alt="Escaneado" style="display:none; width: 300px; height: 300px;">
+    <div id="loading-message">Reproduciendo...</div>
     <audio id="audio-player"></audio>
     
     <script>
@@ -37,6 +45,7 @@
         const reader = document.getElementById("reader");
         const imagePlaceholder = document.getElementById("image-placeholder");
         const audioPlayer = document.getElementById("audio-player");
+        const loadingMessage = document.getElementById("loading-message");
 
         let html5QrCode;
         
@@ -58,10 +67,12 @@
         });
 
         function reproducirAudio(codigo) {
+            loadingMessage.style.display = "block"; // Muestra el mensaje "Reproduciendo..."
             let audioSrc = `audio/${codigo}.mp3`;
             audioPlayer.src = audioSrc;
             audioPlayer.play();
             audioPlayer.onended = () => {
+                loadingMessage.style.display = "none"; // Oculta el mensaje al terminar
                 imagePlaceholder.style.display = "none";
                 scanButton.style.display = "block";
             };
