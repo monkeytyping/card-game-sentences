@@ -71,12 +71,17 @@
                 // Crear instancia del escáner
                 html5QrCode = new Html5Qrcode("qr-reader");
 
+                // Iniciar la cámara y escanear solo cuando esté lista
                 html5QrCode.start(
                     { facingMode: "environment" }, 
                     { fps: 10, qrbox: 250 }, 
-                    onScanSuccess, 
+                    (decodedText) => {
+                        // Llamar al éxito de escaneo aquí
+                        onScanSuccess(decodedText);
+                    }, 
                     onScanError
                 ).then(() => {
+                    // Cambiar el mensaje a "Escanear QR" solo cuando la cámara está lista
                     document.getElementById('result').innerText = "Escanear QR";
                 }).catch(error => {
                     console.error("Error al iniciar la cámara:", error);
