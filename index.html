@@ -21,8 +21,8 @@
     <script>
         let currentAudio = null;
         let html5QrCode;
-        let scanningActive = true; // Controla si el escaneo está activo
-        let scannerStarted = false; // Controla si el escáner ya ha comenzado
+        let scanningActive = true;
+        let scannerStarted = false;
 
         // Función que se llama cuando se escanea correctamente un QR
         function onScanSuccess(decodedText) {
@@ -40,18 +40,15 @@
             currentAudio = new Audio("audio/" + decodedText + ".mp3");
             currentAudio.play().then(() => {
                 currentAudio.onended = () => {
-                    // Reactivar el escaneo después de que termine el audio
-                    scanningActive = true;
+                    scanningActive = true; // Reactivar escaneo después de que termine el audio
                     document.getElementById('result').innerText = "Escanear QR";
                     html5QrCode.stop(); // Detener la cámara cuando termine el audio
-                    scannerStarted = false; // Reiniciar el estado del escáner
                 };
             }).catch(error => {
                 console.error("Error al reproducir el audio:", error);
                 scanningActive = true; // Reactivar escaneo en caso de error
                 document.getElementById('result').innerText = "Escanear QR";
                 html5QrCode.stop(); // Detener la cámara en caso de error
-                scannerStarted = false; // Reiniciar el estado del escáner
             });
         }
 
@@ -71,34 +68,17 @@
                 // Crear instancia del escáner
                 html5QrCode = new Html5Qrcode("qr-reader");
 
-                // Esperar a que la cámara se inicialice antes de comenzar el escaneo
-                setTimeout(() => {
-                    // Solicitar los permisos de la cámara
-                    navigator.mediaDevices.getUserMedia({ video: true })
-                        .then(() => {
-                            // Iniciar el escaneo después de asegurarse que la cámara está lista
-                            html5QrCode.start(
-                                { facingMode: "environment" }, 
-                                { fps: 10, qrbox: 250 }, 
-                                (decodedText) => {
-                                    // Llamar al éxito de escaneo aquí
-                                    onScanSuccess(decodedText);
-                                }, 
-                                onScanError
-                            ).then(() => {
-                                document.getElementById('result').innerText = "Escanear QR";
-                            }).catch(error => {
-                                console.error("Error al iniciar la cámara:", error);
-                                document.getElementById('result').innerText = "Error al cargar la cámara";
-                                scannerStarted = false; // Reiniciar el estado del escáner en caso de error
-                            });
-                        })
-                        .catch(error => {
-                            console.error("Permiso denegado para la cámara:", error);
-                            document.getElementById('result').innerText = "Permiso de cámara denegado";
-                            scannerStarted = false; // Reiniciar el estado del escáner si se deniega el permiso
-                        });
-                }, 1000); // Esperar un segundo antes de iniciar el escaneo
+                html5QrCode.start(
+                    { facingMode: "environment" }, 
+                    { fps: 10, qrbox: 250 }, 
+                    onScanSuccess, 
+                    onScanError
+                ).then(() => {
+                    document.getElementById('result').innerText = "Escanear QR";
+                }).catch(error => {
+                    console.error("Error al iniciar la cámara:", error);
+                    document.getElementById('result').innerText = "Error al cargar la cámara";
+                });
             }
         });
     </script>
