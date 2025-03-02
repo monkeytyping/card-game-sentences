@@ -43,6 +43,7 @@
                 console.error("Error al reproducir el audio:", error);
                 scanningActive = true; // Reactivar escaneo en caso de error
                 document.getElementById('result').innerText = "Escanear QR";
+                alert("Hubo un error al reproducir el audio: " + error.message);
             });
         }
         
