@@ -21,35 +21,19 @@
         let scanningActive = true;
         let html5QrCode = new Html5Qrcode("qr-reader");
 
-        // Crear una función para interactuar y desbloquear el audio
-        function unlockAudio() {
-            const audioTest = new Audio();
-            audioTest.muted = true;
-            audioTest.play().then(() => {
-                audioTest.muted = false;
-            }).catch((error) => {
-                console.error("Error al desbloquear audio:", error);
-            });
-        }
-
         function onScanSuccess(decodedText) {
             if (!scanningActive) return;
-            scanningActive = false; // Detener escaneo mientras se reproduce el audio
+            scanningActive = false; // Detener escaneo mientras suena el audio
             document.getElementById('result').innerText = "Reproduciendo...";
-
+            
             // Detener el audio anterior si está reproduciéndose
             if (currentAudio) {
                 currentAudio.pause();
                 currentAudio.currentTime = 0;
             }
-
+            
             // Reproducir el nuevo audio
             currentAudio = new Audio("audio/" + decodedText + ".mp3");
-
-            // Intentar desbloquear el audio
-            unlockAudio();
-
-            // Intentar reproducir el audio automáticamente
             currentAudio.play().then(() => {
                 currentAudio.onended = () => {
                     scanningActive = true; // Reactivar el escaneo cuando termine el audio
@@ -57,16 +41,16 @@
                 };
             }).catch(error => {
                 console.error("Error al reproducir el audio:", error);
-                scanningActive = true;
+                scanningActive = true; // Reactivar escaneo en caso de error
                 document.getElementById('result').innerText = "Escanear QR";
                 alert("Hubo un error al reproducir el audio: " + error.message);
             });
         }
-
+        
         function onScanError(errorMessage) {
             console.warn(errorMessage);
         }
-
+        
         // Cambiar el mensaje a "Cargando cámara"
         document.getElementById('result').innerText = "Cargando cámara...";
 
