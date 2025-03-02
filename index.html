@@ -89,6 +89,30 @@
                 });
             }
         });
+
+        // Intentar acceder a la cámara de manera diferente para dispositivos móviles
+        function requestCameraPermission() {
+            return new Promise((resolve, reject) => {
+                navigator.mediaDevices.getUserMedia({ video: true })
+                    .then((stream) => {
+                        resolve(stream);
+                    })
+                    .catch((err) => {
+                        reject(err);
+                    });
+            });
+        }
+
+        // Solo iniciar el escáner después de obtener acceso a la cámara
+        requestCameraPermission()
+            .then(() => {
+                console.log('Permisos de cámara concedidos');
+            })
+            .catch((error) => {
+                console.error('Permiso de cámara denegado:', error);
+                document.getElementById('result').innerText = 'Permiso de cámara denegado';
+            });
+
     </script>
 </body>
 </html>
