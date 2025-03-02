@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Escáner QR con Reproducción de Audio</title>
+    <title>Frases de películas</title>
     <script src="https://unpkg.com/html5-qrcode" defer></script>
     <style>
         #reader, #image-placeholder {
@@ -19,10 +19,21 @@
             font-size: 16px;
             cursor: pointer;
         }
+        #loading-message {
+            text-align: center;
+            font-size: 18px;
+            display: none;
+        }
+        h1 {
+            text-align: center;
+            font-size: 24px;
+        }
     </style>
 </head>
 <body>
+    <h1>Frases de películas</h1>
     <button id="scan-button">Escanear QR</button>
+    <p id="loading-message">Cargando cámara...</p>
     <div id="reader"></div>
     <img id="image-placeholder" src="imagen.png" alt="Escaneado" style="display:none; width: 300px; height: 300px;">
     <audio id="audio-player"></audio>
@@ -32,24 +43,38 @@
         const reader = document.getElementById("reader");
         const imagePlaceholder = document.getElementById("image-placeholder");
         const audioPlayer = document.getElementById("audio-player");
+        const loadingMessage = document.getElementById("loading-message");
 
         let html5QrCode;
-        
+
         scanButton.addEventListener("click", () => {
             scanButton.style.display = "none";
-            reader.style.display = "block";
-            html5QrCode = new Html5Qrcode("reader");
-            html5QrCode.start(
-                { facingMode: "environment" },
-                { fps: 10, qrbox: 250 },
-                qrCodeMessage => {
-                    html5QrCode.stop();
-                    reader.style.display = "none";
-                    imagePlaceholder.style.display = "block";
-                    reproducirAudio(qrCodeMessage);
-                },
-                errorMessage => {} 
-            ).catch(err => console.log(err));
+            loadingMessage.style.display = "block"; // Mostrar mensaje de carga
+            
+            setTimeout(() => {
+                reader.style.display = "block"; // Mostrar cámara después de un pequeño retraso
+                html5QrCode = new Html5Qrcode("reader");
+                
+                html5QrCode.start(
+                    { facingMode: "environment" },
+                    { fps: 10, qrbox: { width: 250, height: 250 } },
+                    qrCodeMessage => {
+                        html5QrCode.stop().then(() => {
+                            reader.style.display = "none";
+                            imagePlaceholder.style.display = "block";
+                            reproducirAudio(qrCodeMessage);
+                        });
+                    },
+                    errorMessage => {} 
+                ).then(() => {
+                    loadingMessage.style.display = "none"; // Ocultar mensaje cuando la cámara esté lista
+                }).catch(err => {
+                    console.log(err);
+                    loadingMessage.style.display = "none";
+                    scanButton.style.display = "block";
+                });
+
+            }, 1000); // Retraso para asegurar que el mensaje de carga se muestre antes de iniciar la cámara
         });
 
         function reproducirAudio(codigo) {
