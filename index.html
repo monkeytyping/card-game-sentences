@@ -71,34 +71,31 @@
                 // Crear instancia del escáner
                 html5QrCode = new Html5Qrcode("qr-reader");
 
-                // Esperar a que la cámara se inicialice antes de comenzar el escaneo
-                setTimeout(() => {
-                    // Solicitar los permisos de la cámara
-                    navigator.mediaDevices.getUserMedia({ video: true })
-                        .then(() => {
-                            // Iniciar el escaneo después de asegurarse que la cámara está lista
-                            html5QrCode.start(
-                                { facingMode: "environment" }, 
-                                { fps: 10, qrbox: 250 }, 
-                                (decodedText) => {
-                                    // Llamar al éxito de escaneo aquí
-                                    onScanSuccess(decodedText);
-                                }, 
-                                onScanError
-                            ).then(() => {
-                                document.getElementById('result').innerText = "Escanear QR";
-                            }).catch(error => {
-                                console.error("Error al iniciar la cámara:", error);
-                                document.getElementById('result').innerText = "Error al cargar la cámara";
-                                scannerStarted = false; // Reiniciar el estado del escáner en caso de error
-                            });
-                        })
-                        .catch(error => {
-                            console.error("Permiso denegado para la cámara:", error);
-                            document.getElementById('result').innerText = "Permiso de cámara denegado";
-                            scannerStarted = false; // Reiniciar el estado del escáner si se deniega el permiso
+                // Solicitar los permisos de la cámara
+                navigator.mediaDevices.getUserMedia({ video: true })
+                    .then(() => {
+                        // Iniciar el escaneo después de asegurarse que la cámara está lista
+                        html5QrCode.start(
+                            { facingMode: "environment" }, 
+                            { fps: 10, qrbox: 250 }, 
+                            (decodedText) => {
+                                // Llamar al éxito de escaneo aquí
+                                onScanSuccess(decodedText);
+                            }, 
+                            onScanError
+                        ).then(() => {
+                            document.getElementById('result').innerText = "Escanear QR";
+                        }).catch(error => {
+                            console.error("Error al iniciar la cámara:", error);
+                            document.getElementById('result').innerText = "Error al cargar la cámara";
+                            scannerStarted = false; // Reiniciar el estado del escáner en caso de error
                         });
-                }, 1000); // Esperar un segundo antes de iniciar el escaneo
+                    })
+                    .catch(error => {
+                        console.error("Permiso denegado para la cámara:", error);
+                        document.getElementById('result').innerText = "Permiso de cámara denegado";
+                        scannerStarted = false; // Reiniciar el estado del escáner si se deniega el permiso
+                    });
             }
         });
     </script>
