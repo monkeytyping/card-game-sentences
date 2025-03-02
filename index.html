@@ -7,22 +7,26 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html5-qrcode/2.3.8/html5-qrcode.min.js"></script>
     <style>
         body { font-family: Arial, sans-serif; text-align: center; padding: 20px; }
-        #qr-reader { width: 300px; margin: auto; }
+        #qr-reader { width: 300px; margin: auto; display: none; }
         #result { font-size: 18px; font-weight: bold; margin-top: 20px; }
+        #start-button { margin-top: 20px; }
     </style>
 </head>
 <body>
     <h1>Frases de películas</h1>
+    <div id="result">Escanear QR</div>
     <div id="qr-reader"></div>
-    <p id="result">Escanear QR</p>
+    <button id="start-button">Iniciar Escaneo</button>
     
     <script>
         let currentAudio = null;
+        let html5QrCode;
         let scanningActive = true; // Controla si el escaneo está activo
-        let html5QrCode = new Html5Qrcode("qr-reader");
+        let scannerStarted = false; // Controla si el escáner ya ha comenzado
 
+        // Función que se llama cuando se escanea correctamente un QR
         function onScanSuccess(decodedText) {
-            //if (!scanningActive) return; // Evitar escanear si el audio está sonando
+            if (!scanningActive) return;
             scanningActive = false; // Detener escaneo mientras se reproduce el audio
             document.getElementById('result').innerText = "Reproduciendo...";
 
@@ -39,11 +43,15 @@
                     // Reactivar el escaneo después de que termine el audio
                     scanningActive = true;
                     document.getElementById('result').innerText = "Escanear QR";
+                    html5QrCode.stop(); // Detener la cámara cuando termine el audio
+                    scannerStarted = false; // Reiniciar el estado del escáner
                 };
             }).catch(error => {
                 console.error("Error al reproducir el audio:", error);
                 scanningActive = true; // Reactivar escaneo en caso de error
                 document.getElementById('result').innerText = "Escanear QR";
+                html5QrCode.stop(); // Detener la cámara en caso de error
+                scannerStarted = false; // Reiniciar el estado del escáner
             });
         }
 
@@ -51,21 +59,31 @@
             console.warn(errorMessage);
         }
 
-        // Cambiar el mensaje a "Cargando cámara"
-        document.getElementById('result').innerText = "Cargando cámara...";
+        // Iniciar el escaneo al presionar el botón
+        document.getElementById('start-button').addEventListener('click', () => {
+            if (!scannerStarted) {
+                // Cambiar el estado de la cámara a "cargando"
+                document.getElementById('result').innerText = "Cargando cámara...";
+                // Mostrar el contenedor del lector QR
+                document.getElementById('qr-reader').style.display = 'block';
+                scannerStarted = true;
 
-        // Iniciar escaneo inicialmente
-        html5QrCode.start(
-            { facingMode: "environment" }, 
-            { fps: 10, qrbox: 250 }, 
-            onScanSuccess, 
-            onScanError
-        ).then(() => {
-            // Cambiar el mensaje a "Escanear QR" cuando la cámara esté lista
-            document.getElementById('result').innerText = "Escanear QR";
-        }).catch(error => {
-            console.error("Error al iniciar la cámara:", error);
-            document.getElementById('result').innerText = "Error al cargar la cámara";
+                // Crear instancia del escáner
+                html5QrCode = new Html5Qrcode("qr-reader");
+
+                html5QrCode.start(
+                    { facingMode: "environment" }, 
+                    { fps: 10, qrbox: 250 }, 
+                    onScanSuccess, 
+                    onScanError
+                ).then(() => {
+                    document.getElementById('result').innerText = "Escanear QR";
+                }).catch(error => {
+                    console.error("Error al iniciar la cámara:", error);
+                    document.getElementById('result').innerText = "Error al cargar la cámara";
+                    scannerStarted = false; // Reiniciar el estado del escáner en caso de error
+                });
+            }
         });
     </script>
 </body>
