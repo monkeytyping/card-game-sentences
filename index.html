@@ -3,117 +3,64 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Frases de películas</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html5-qrcode/2.3.8/html5-qrcode.min.js"></script>
+    <title>Escáner QR con Reproducción de Audio</title>
+    <script src="https://unpkg.com/html5-qrcode" defer></script>
     <style>
-        body { font-family: Arial, sans-serif; text-align: center; padding: 20px; }
-        #qr-reader { width: 300px; margin: auto; display: none; }
-        #result { font-size: 18px; font-weight: bold; margin-top: 20px; }
-        #start-button { margin-top: 20px; }
+        #reader, #image-placeholder {
+            width: 300px;
+            height: 300px;
+            margin: auto;
+            display: none;
+        }
+        #scan-button {
+            display: block;
+            margin: auto;
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+        }
     </style>
 </head>
 <body>
-    <h1>Frases de películas</h1>
-    <div id="result">Escanear QR</div>
-    <div id="qr-reader"></div>
-    <button id="start-button">Iniciar Escaneo</button>
+    <button id="scan-button">Escanear QR</button>
+    <div id="reader"></div>
+    <img id="image-placeholder" src="imagen.png" alt="Escaneado" style="display:none; width: 300px; height: 300px;">
+    <audio id="audio-player"></audio>
     
     <script>
-        let currentAudio = null;
+        const scanButton = document.getElementById("scan-button");
+        const reader = document.getElementById("reader");
+        const imagePlaceholder = document.getElementById("image-placeholder");
+        const audioPlayer = document.getElementById("audio-player");
+
         let html5QrCode;
-        let scanningActive = true; // Controla si el escaneo está activo
-        let scannerStarted = false; // Controla si el escáner ya ha comenzado
-
-        function onScanSuccess(decodedText) {
-            if (!scanningActive) return;
-            scanningActive = false;
-            document.getElementById('result').innerText = "Reproduciendo...";
-
-            if (currentAudio) {
-                currentAudio.pause();
-                currentAudio.currentTime = 0;
-            }
-
-            currentAudio = new Audio("audio/" + decodedText + ".mp3");
-            
-            currentAudio.play().then(() => {
-                currentAudio.onended = () => {
-                    scanningActive = true;
-                    document.getElementById('result').innerText = "Escanear QR";
-                    
-                    if (html5QrCode) {
-                        html5QrCode.stop().then(() => {
-                            scannerStarted = false;
-                        }).catch(err => console.error("Error al detener el escáner:", err));
-                    } else {
-                        scannerStarted = false;
-                    }
-                };
-            }).catch(error => {
-                console.error("Error al reproducir el audio:", error);
-                scanningActive = true;
-                document.getElementById('result').innerText = "Escanear QR";
-                
-                if (html5QrCode) {
-                    html5QrCode.stop().then(() => {
-                        scannerStarted = false;
-                    }).catch(err => console.error("Error al detener el escáner:", err));
-                } else {
-                    scannerStarted = false;
-                }
-            });
-        }
-
-        function onScanError(errorMessage) {
-            console.warn(errorMessage);
-        }
-
-        document.getElementById('start-button').addEventListener('click', () => {
-            if (!scannerStarted) {
-                document.getElementById('result').innerText = "Cargando cámara...";
-                document.getElementById('qr-reader').style.display = 'block';
-                scannerStarted = true;
-
-                html5QrCode = new Html5Qrcode("qr-reader");
-
-                html5QrCode.start(
-                    { facingMode: "environment" }, 
-                    { fps: 10, qrbox: 250 }, 
-                    (decodedText) => {
-                        onScanSuccess(decodedText);
-                    }, 
-                    onScanError
-                ).then(() => {
-                    document.getElementById('result').innerText = "Escanear QR";
-                }).catch(error => {
-                    console.error("Error al iniciar la cámara:", error);
-                    document.getElementById('result').innerText = "Error al cargar la cámara";
-                    scannerStarted = false;
-                });
-            }
+        
+        scanButton.addEventListener("click", () => {
+            scanButton.style.display = "none";
+            reader.style.display = "block";
+            html5QrCode = new Html5Qrcode("reader");
+            html5QrCode.start(
+                { facingMode: "environment" },
+                { fps: 10, qrbox: 250 },
+                qrCodeMessage => {
+                    html5QrCode.stop();
+                    reader.style.display = "none";
+                    imagePlaceholder.style.display = "block";
+                    reproducirAudio(qrCodeMessage);
+                },
+                errorMessage => {} 
+            ).catch(err => console.log(err));
         });
 
-        function requestCameraPermission() {
-            return new Promise((resolve, reject) => {
-                navigator.mediaDevices.getUserMedia({ video: true })
-                    .then((stream) => {
-                        resolve(stream);
-                    })
-                    .catch((err) => {
-                        reject(err);
-                    });
-            });
+        function reproducirAudio(codigo) {
+            let audioSrc = `audio/${codigo}.mp3`;
+            audioPlayer.src = audioSrc;
+            audioPlayer.play();
+            audioPlayer.onended = () => {
+                imagePlaceholder.style.display = "none";
+                scanButton.style.display = "block";
+            };
         }
-
-        requestCameraPermission()
-            .then(() => {
-                console.log('Permisos de cámara concedidos');
-            })
-            .catch((error) => {
-                console.error('Permiso de cámara denegado:', error);
-                document.getElementById('result').innerText = 'Permiso de cámara denegado';
-            });
-
     </script>
 </body>
 </html>
