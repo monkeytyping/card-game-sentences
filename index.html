@@ -4,10 +4,13 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Frases de Películas</title>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/html5-qrcode" defer></script>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
         body {
-            background-color: #e5eff1; /* Color de fondo */
+            background-color: #e0e0e0; /* Color de fondo */
+            font-family: 'Montserrat', sans-serif;
         }
         #reader, #image-placeholder {
             width: 300px;
@@ -30,7 +33,7 @@
 </head>
 <body>
     <h1>Frases de Películas</h1>
-    <button id="scan-button">Escanear QR</button>
+    <button class="btn btn-outline-secondary mt-3" id="scan-button">Escanear QR</button>
     <div id="reader"></div>
     <img id="image-placeholder" src="img/playing.gif" alt="Reproduciendo" style="display:none; width: 300px; height: 300px;">
     <audio id="audio-player"></audio>
