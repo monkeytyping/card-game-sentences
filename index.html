@@ -22,7 +22,7 @@
         let html5QrCode = new Html5Qrcode("qr-reader");
 
         function onScanSuccess(decodedText) {
-            if (!scanningActive) return; // Evitar escanear si el audio está sonando
+            //if (!scanningActive) return; // Evitar escanear si el audio está sonando
             scanningActive = false; // Detener escaneo mientras se reproduce el audio
             document.getElementById('result').innerText = "Reproduciendo...";
 
