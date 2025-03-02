@@ -3,112 +3,37 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Frases de películas</title>
-    <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js"></script>
+    <title>Escáner QR</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html5-qrcode/2.3.8/html5-qrcode.min.js"></script>
     <style>
-        body { 
-            text-align: center; 
-            font-family: Arial, sans-serif; 
-            margin: 0;
-            padding: 0;
-        }
-
-        video {
-            width: 100%;
-            height: auto;
-            max-width: 500px; /* Ajuste para que no se sobrecargue en móviles */
-        }
-
-        canvas { 
-            display: none; 
-        }
-        
-        /* Ajustes adicionales para pantalla móvil */
-        @media (max-width: 600px) {
-            video {
-                max-width: 100%;
-                height: auto;
-            }
-        }
+        body { font-family: Arial, sans-serif; text-align: center; padding: 20px; }
+        #qr-reader { width: 300px; margin: auto; }
+        #result { font-size: 18px; font-weight: bold; margin-top: 20px; }
     </style>
 </head>
 <body>
-    <h1>Frases de películas</h1>
-    <video id="video" autoplay></video>
-    <canvas id="canvas"></canvas>
-    <p id="mensaje">Escanea un código QR.</p>
-    <audio id="audio" style="display: none;"></audio>
-
+    <h1>Escanear Código QR</h1>
+    <div id="qr-reader"></div>
+    <p id="result">Escanee un código QR...</p>
+    
     <script>
-        const video = document.getElementById("video");
-        const canvas = document.getElementById("canvas");
-        const context = canvas.getContext("2d");
-        const mensaje = document.getElementById("mensaje");
-        const audio = document.getElementById("audio");
-
-        let escaneando = false;
-
-        async function iniciarCamara() {
-            try {
-                // Solicitar acceso a la cámara de forma adecuada
-                const stream = await navigator.mediaDevices.getUserMedia({
-                    video: { facingMode: { exact: "environment" } } // Aseguramos que se use la cámara trasera
-                });
-                video.srcObject = stream;
-                video.play();
-                console.log("Cámara iniciada correctamente");  // Depuración
-                escanearQR();
-            } catch (error) {
-                mensaje.textContent = "Error al acceder a la cámara.";
-                console.error("Error al acceder a la cámara:", error);  // Depuración
-            }
+        function onScanSuccess(decodedText) {
+            document.getElementById('result').innerText = "Resultado: " + decodedText;
         }
-
-        function escanearQR() {
-            console.log("Iniciando el escaneo de QR...");  // Depuración
-            const intervalo = setInterval(() => {
-                if (video.readyState === video.HAVE_ENOUGH_DATA && !escaneando) {
-                    console.log("Cargando frame del video...");  // Depuración
-                    canvas.width = video.videoWidth;
-                    canvas.height = video.videoHeight;
-                    context.drawImage(video, 0, 0, canvas.width, canvas.height);
-
-                    const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
-                    const codigoQR = jsQR(imageData.data, imageData.width, imageData.height);
-
-                    if (codigoQR) {
-                        clearInterval(intervalo);
-                        escaneando = true;
-                        console.log("Código QR detectado:", codigoQR);  // Depuración
-                        procesarQR(codigoQR.data);
-                    }
-                }
-            }, 500);
+        
+        function onScanError(errorMessage) {
+            console.warn(errorMessage);
         }
-
-        function procesarQR(codigo) {
-            const url = `https://monkeytyping.github.io/card-game-sentences/audio/${codigo}.mp3`;
-            mensaje.textContent = `Reproduciendo...`;
-            console.log(`Reproduciendo audio desde: ${url}`);  // Depuración
-            audio.src = url;
-            audio.play().catch(() => {
-                mensaje.textContent = "Error al reproducir audio.";
-                console.error("Error al reproducir audio.");  // Depuración
-                escaneando = false;
-            });
-        }
-
-        // Cuando el audio termina, vuelve a activar el escaneo de QR
-        audio.onended = () => {
-            mensaje.textContent = "Escanea un código QR.";
-            escaneando = false;
-            escanearQR();
-        };
-
-        // Iniciar la cámara al cargar la página
-        window.onload = () => {
-            iniciarCamara();
-        };
+        
+        document.addEventListener("DOMContentLoaded", function () {
+            let html5QrCode = new Html5Qrcode("qr-reader");
+            html5QrCode.start(
+                { facingMode: "environment" }, 
+                { fps: 10, qrbox: 250 }, 
+                onScanSuccess, 
+                onScanError
+            );
+        });
     </script>
 </body>
 </html>
