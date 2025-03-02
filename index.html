@@ -24,34 +24,43 @@
         let scanningActive = true; // Controla si el escaneo está activo
         let scannerStarted = false; // Controla si el escáner ya ha comenzado
 
-        // Función que se llama cuando se escanea correctamente un QR
         function onScanSuccess(decodedText) {
             if (!scanningActive) return;
-            scanningActive = false; // Detener escaneo mientras se reproduce el audio
+            scanningActive = false;
             document.getElementById('result').innerText = "Reproduciendo...";
 
-            // Detener el audio anterior si está reproduciéndose
             if (currentAudio) {
                 currentAudio.pause();
                 currentAudio.currentTime = 0;
             }
 
-            // Reproducir el nuevo audio
             currentAudio = new Audio("audio/" + decodedText + ".mp3");
+            
             currentAudio.play().then(() => {
                 currentAudio.onended = () => {
-                    // Reactivar el escaneo después de que termine el audio
                     scanningActive = true;
                     document.getElementById('result').innerText = "Escanear QR";
-                    html5QrCode.stop(); // Detener la cámara cuando termine el audio
-                    scannerStarted = false; // Reiniciar el estado del escáner
+                    
+                    if (html5QrCode) {
+                        html5QrCode.stop().then(() => {
+                            scannerStarted = false;
+                        }).catch(err => console.error("Error al detener el escáner:", err));
+                    } else {
+                        scannerStarted = false;
+                    }
                 };
             }).catch(error => {
                 console.error("Error al reproducir el audio:", error);
-                scanningActive = true; // Reactivar escaneo en caso de error
+                scanningActive = true;
                 document.getElementById('result').innerText = "Escanear QR";
-                html5QrCode.stop(); // Detener la cámara en caso de error
-                scannerStarted = false; // Reiniciar el estado del escáner
+                
+                if (html5QrCode) {
+                    html5QrCode.stop().then(() => {
+                        scannerStarted = false;
+                    }).catch(err => console.error("Error al detener el escáner:", err));
+                } else {
+                    scannerStarted = false;
+                }
             });
         }
 
@@ -59,24 +68,18 @@
             console.warn(errorMessage);
         }
 
-        // Iniciar el escaneo al presionar el botón
         document.getElementById('start-button').addEventListener('click', () => {
             if (!scannerStarted) {
-                // Cambiar el estado de la cámara a "cargando"
                 document.getElementById('result').innerText = "Cargando cámara...";
-                // Mostrar el contenedor del lector QR
                 document.getElementById('qr-reader').style.display = 'block';
                 scannerStarted = true;
 
-                // Crear instancia del escáner
                 html5QrCode = new Html5Qrcode("qr-reader");
 
-                // Intentamos obtener permisos de la cámara y luego comenzar a escanear
                 html5QrCode.start(
                     { facingMode: "environment" }, 
                     { fps: 10, qrbox: 250 }, 
                     (decodedText) => {
-                        // Llamar al éxito de escaneo aquí
                         onScanSuccess(decodedText);
                     }, 
                     onScanError
@@ -85,12 +88,11 @@
                 }).catch(error => {
                     console.error("Error al iniciar la cámara:", error);
                     document.getElementById('result').innerText = "Error al cargar la cámara";
-                    scannerStarted = false; // Reiniciar el estado del escáner en caso de error
+                    scannerStarted = false;
                 });
             }
         });
 
-        // Intentar acceder a la cámara de manera diferente para dispositivos móviles
         function requestCameraPermission() {
             return new Promise((resolve, reject) => {
                 navigator.mediaDevices.getUserMedia({ video: true })
@@ -103,7 +105,6 @@
             });
         }
 
-        // Solo iniciar el escáner después de obtener acceso a la cámara
         requestCameraPermission()
             .then(() => {
                 console.log('Permisos de cámara concedidos');
