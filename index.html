@@ -18,12 +18,12 @@
     
     <script>
         let currentAudio = null;
-        let scanningActive = true;
+        let scanningActive = true; // Controla si el escaneo está activo
         let html5QrCode = new Html5Qrcode("qr-reader");
 
         function onScanSuccess(decodedText) {
-            if (!scanningActive) return;
-            scanningActive = false; // Detener escaneo mientras suena el audio
+            if (!scanningActive) return; // Evitar escanear si el audio está sonando
+            scanningActive = false; // Detener escaneo mientras se reproduce el audio
             document.getElementById('result').innerText = "Reproduciendo...";
 
             // Detener el audio anterior si está reproduciéndose
@@ -39,17 +39,6 @@
                     // Reactivar el escaneo después de que termine el audio
                     scanningActive = true;
                     document.getElementById('result').innerText = "Escanear QR";
-                    
-                    // Reiniciar la cámara para que se pueda seguir escaneando
-                    html5QrCode.start(
-                        { facingMode: "environment" },
-                        { fps: 10, qrbox: 250 },
-                        onScanSuccess,
-                        onScanError
-                    ).catch(error => {
-                        console.error("Error al reiniciar la cámara:", error);
-                        document.getElementById('result').innerText = "Error al cargar la cámara";
-                    });
                 };
             }).catch(error => {
                 console.error("Error al reproducir el audio:", error);
@@ -65,6 +54,7 @@
         // Cambiar el mensaje a "Cargando cámara"
         document.getElementById('result').innerText = "Cargando cámara...";
 
+        // Iniciar escaneo inicialmente
         html5QrCode.start(
             { facingMode: "environment" }, 
             { fps: 10, qrbox: 250 }, 
