@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Escáner QR</title>
+    <title>Frases de películas</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html5-qrcode/2.3.8/html5-qrcode.min.js"></script>
     <style>
         body { font-family: Arial, sans-serif; text-align: center; padding: 20px; }
@@ -12,27 +12,58 @@
     </style>
 </head>
 <body>
-    <h1>Escanear Código QR</h1>
+    <h1>Frases de películas</h1>
     <div id="qr-reader"></div>
-    <p id="result">Escanee un código QR...</p>
+    <p id="result">Escanear QR</p>
     
     <script>
+        let currentAudio = null;
+        let scanningActive = true;
+        let html5QrCode = new Html5Qrcode("qr-reader");
+
         function onScanSuccess(decodedText) {
-            document.getElementById('result').innerText = "Resultado: " + decodedText;
+            if (!scanningActive) return;
+            scanningActive = false; // Detener escaneo mientras suena el audio
+            document.getElementById('result').innerText = "Reproduciendo...";
+            
+            // Detener el audio anterior si está reproduciéndose
+            if (currentAudio) {
+                currentAudio.pause();
+                currentAudio.currentTime = 0;
+            }
+            
+            // Reproducir el nuevo audio
+            currentAudio = new Audio("audio/" + decodedText + ".mp3");
+            currentAudio.play().then(() => {
+                currentAudio.onended = () => {
+                    scanningActive = true; // Reactivar el escaneo cuando termine el audio
+                    document.getElementById('result').innerText = "Escanear QR";
+                };
+            }).catch(error => {
+                console.error("Error al reproducir el audio:", error);
+                scanningActive = true; // Reactivar escaneo en caso de error
+                document.getElementById('result').innerText = "Escanear QR";
+            });
         }
         
         function onScanError(errorMessage) {
             console.warn(errorMessage);
         }
         
-        document.addEventListener("DOMContentLoaded", function () {
-            let html5QrCode = new Html5Qrcode("qr-reader");
-            html5QrCode.start(
-                { facingMode: "environment" }, 
-                { fps: 10, qrbox: 250 }, 
-                onScanSuccess, 
-                onScanError
-            );
+        // Cambiar el mensaje a "Cargando cámara"
+        document.getElementById('result').innerText = "Cargando cámara...";
+
+        html5QrCode.start(
+            { facingMode: "environment" }, 
+            { fps: 10, qrbox: 250 }, 
+            onScanSuccess, 
+            onScanError
+        ).then(() => {
+            // Cambiar el mensaje a "Escanear QR" cuando la cámara esté lista
+            document.getElementById('result').innerText = "Escanear QR";
+        }).catch(error => {
+            console.error("Error al iniciar la cámara:", error);
+            document.getElementById('result').innerText = "Error al cargar la cámara";
         });
     </script>
 </body>
