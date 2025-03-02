@@ -40,21 +40,14 @@
                     scanningActive = true;
                     document.getElementById('result').innerText = "Escanear QR";
                     
-                    // Reiniciar la cámara para que se pueda seguir escaneando
-                    html5QrCode.start(
-                        { facingMode: "environment" },
-                        { fps: 10, qrbox: 250 },
-                        onScanSuccess,
-                        onScanError
-                    ).catch(error => {
-                        console.error("Error al reiniciar la cámara:", error);
-                        document.getElementById('result').innerText = "Error al cargar la cámara";
-                    });
+                    // Reiniciar el escaneo explícitamente
+                    restartScanning();
                 };
             }).catch(error => {
                 console.error("Error al reproducir el audio:", error);
                 scanningActive = true; // Reactivar escaneo en caso de error
                 document.getElementById('result').innerText = "Escanear QR";
+                restartScanning(); // Reiniciar escaneo en caso de error
             });
         }
 
@@ -65,6 +58,26 @@
         // Cambiar el mensaje a "Cargando cámara"
         document.getElementById('result').innerText = "Cargando cámara...";
 
+        // Función para reiniciar el escaneo
+        function restartScanning() {
+            html5QrCode.stop().then(() => {
+                // Detener la cámara y luego reiniciarla
+                html5QrCode.start(
+                    { facingMode: "environment" },
+                    { fps: 10, qrbox: 250 },
+                    onScanSuccess,
+                    onScanError
+                ).catch(error => {
+                    console.error("Error al reiniciar la cámara:", error);
+                    document.getElementById('result').innerText = "Error al cargar la cámara";
+                });
+            }).catch(error => {
+                console.error("Error al detener la cámara:", error);
+                document.getElementById('result').innerText = "Error al detener la cámara";
+            });
+        }
+
+        // Iniciar escaneo inicialmente
         html5QrCode.start(
             { facingMode: "environment" }, 
             { fps: 10, qrbox: 250 }, 
