@@ -25,6 +25,12 @@
             font-size: 16px;
             cursor: pointer;
         }
+        #loading-message {
+            text-align: center;
+            font-size: 18px;
+            margin-top: 20px;
+            display: none; /* Se oculta por defecto */
+        }
         h1 {
             text-align: center;
             margin-top: 50px;
@@ -34,6 +40,7 @@
 <body>
     <h1>Frases de Películas</h1>
     <button class="btn btn-outline-secondary mt-3" id="scan-button">Escanear QR</button>
+    <div id="loading-message">Cargando cámara...</div> <!-- Mensaje de carga -->
     <div id="reader"></div>
     <img id="image-placeholder" src="img/playing.gif" alt="Reproduciendo" style="display:none; width: 300px; height: 300px;">
     <audio id="audio-player"></audio>
@@ -43,13 +50,18 @@
         const reader = document.getElementById("reader");
         const imagePlaceholder = document.getElementById("image-placeholder");
         const audioPlayer = document.getElementById("audio-player");
+        const loadingMessage = document.getElementById("loading-message");
 
         let html5QrCode;
         
         scanButton.addEventListener("click", () => {
             scanButton.style.display = "none";
+            loadingMessage.style.display = "block"; // Mostrar mensaje de carga
             reader.style.display = "block";
+            
             html5QrCode = new Html5Qrcode("reader");
+            
+            // Iniciar la cámara
             html5QrCode.start(
                 { facingMode: "environment" }, // Usar la cámara trasera del dispositivo
                 { fps: 10, qrbox: 300 }, // Asegurando que el área del escaneo sea cuadrada (300x300)
@@ -60,7 +72,9 @@
                     reproducirAudio(qrCodeMessage);
                 },
                 errorMessage => {} 
-            ).catch(err => console.log(err));
+            ).then(() => {
+                loadingMessage.style.display = "none"; // Ocultar mensaje de carga una vez que la cámara se ha cargado
+            }).catch(err => console.log(err));
         });
 
         function reproducirAudio(codigo) {
