@@ -3,9 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Escáner QR con Reproducción de Audio</title>
+    <title>Frases de Películas</title>
     <script src="https://unpkg.com/html5-qrcode" defer></script>
     <style>
+        body {
+            background-color: #e5eff1; /* Color de fondo */
+        }
         #reader, #image-placeholder {
             width: 300px;
             height: 300px;
@@ -29,7 +32,7 @@
     <h1>Frases de Películas</h1>
     <button id="scan-button">Escanear QR</button>
     <div id="reader"></div>
-    <img id="image-placeholder" src="imagen.png" alt="Escaneado" style="display:none; width: 300px; height: 300px;">
+    <img id="image-placeholder" src="img/playing.gif" alt="Reproduciendo" style="display:none; width: 300px; height: 300px;">
     <audio id="audio-player"></audio>
     
     <script>
@@ -58,7 +61,7 @@
         });
 
         function reproducirAudio(codigo) {
-            let audioSrc = audio/${codigo}.mp3;
+            let audioSrc = `audio/${codigo}.mp3`;
             audioPlayer.src = audioSrc;
             audioPlayer.play();
             audioPlayer.onended = () => {
